@@ -1,0 +1,59 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.venv/
+venv/
+*.db
+
+# Secrets — never commit
+.env
+*.key
+*.pem
+*.crt
+*.secret
+
+# Go — compiled binaries
+# Build output goes directly to data/agent-bin/ via: make build
+# (single location — served for download by the backend)
+agent/bin/
+agent/agent
+agent/*.exe
+# Cross-compiled release binaries
+agent/agent-*
+agent-linux-*
+agent-darwin-*
+agent-windows-*
+
+# Plugin store downloads extension-less mirror files (agent auto-downloads these)
+agent/plugins/disk_usage
+agent/plugins/docker_containers
+agent/plugins/http_status
+agent/plugins/ping_check
+agent/plugins/proxmox_list_vms
+agent/plugins/ssl_expiry
+
+# Node
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env.local
+
+# Backend bind-mount data directory (SQLite DB lives here)
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDE
+.idea/
+.vscode/
+*.code-workspace
+
+# Logs
+*.log
+logs/

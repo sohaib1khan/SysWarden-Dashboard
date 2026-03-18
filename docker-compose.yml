@@ -1,0 +1,77 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"    # agents on remote hosts connect here directly
+    env_file: .env
+    volumes:
+      - ./data:/app/data        # bind-mount — DB on disk, survives volume prune, easy to backup
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  dashboard:
+    build:
+      context: ./dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"      # primary UI — nginx proxies /api/* to backend
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # ── Optional: run the agent on this same machine ─────────────────────────
+  # Activate with:  docker compose --profile agent up -d
+  # The agent connects to the backend container by service name.
+  # Add pid: host and network_mode: host to get true host-level metrics.
+  agent:
+    profiles: ["agent"]
+    build:
+      context: ./agent
+      dockerfile: Dockerfile
+    environment:
+      - SYSWARDEN_BACKEND_URL=http://backend:8000
+      - SYSWARDEN_INTERVAL=10
+      # disk_usage plugin: set to /host to report real host disk space.
+      # Requires the  /:/host:ro  bind-mount below (uncomment both lines together).
+      # - DISK_MOUNT=/host
+      # ── Proxmox plugin credentials (required for proxmox_list_vms.py) ──────
+      # Uncomment and fill in to enable the proxmox.list_vms capability plugin.
+      # - PROXMOX_HOST=192.168.1.100        # Proxmox IP or hostname (no port)
+      # - PROXMOX_TOKEN_ID=root@pam!mytoken # user@realm!tokenid
+      # - PROXMOX_TOKEN_SECRET=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+      # - PROXMOX_VERIFY_TLS=0              # set to 1 if you have a valid cert
+    volumes:
+      - agent_data:/root/.syswarden      # persists agent ID + key across restarts
+      - ./agent/plugins:/app/plugins     # live-reload plugins without rebuilding
+      # - /:/host:ro                     # give disk_usage real host disk visibility
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+volumes:
+  agent_data:     # named volume — persists agent registration credentials
+
+# ─────────────────────────────────────────────────────────
+# Production TLS:
+#   Add Caddy or nginx-proxy in front of the dashboard and backend.
+#
+#   Caddyfile example:
+#     syswarden.yourdomain.com {
+#       reverse_proxy dashboard:80      # UI + API (nginx already proxies /api)
+#     }
+#     agents.yourdomain.com {
+#       reverse_proxy backend:8000      # WebSocket + ingest for remote agents
+#     }
+#
+#   Update ALLOWED_ORIGINS in .env:
+#     ALLOWED_ORIGINS=https://syswarden.yourdomain.com
+# ─────────────────────────────────────────────────────────
