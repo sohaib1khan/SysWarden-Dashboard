@@ -6,6 +6,8 @@ A modular, self-hosted observability platform. Deploy a lightweight agent on any
 
 **This is an actively growing project.** Features, capabilities, and documentation are continuously being expanded.
 
+📖 **[Full documentation & product page →](https://sohaib1khan.github.io/SysWarden-Dashboard/)**
+
 ---
 
 ## Screenshots
@@ -110,7 +112,7 @@ A modular, self-hosted observability platform. Deploy a lightweight agent on any
 ### Server
 
 ```bash
-git clone https://github.com/sohaib1khan/SysWarden-Dashboard.git
+git clone https://github.com/sohaib1khan/SysWarden.git
 cd SysWarden
 bash scripts/setup.sh
 ```
@@ -318,7 +320,9 @@ SysWarden/
 │       ├── hooks/          # Custom React hooks
 │       ├── pages/          # One file per route
 │       └── store/          # Global state
-├── docs/                   # API contract, architecture notes
+├── docs/
+│   ├── index.html          # GitHub Pages product page
+│   └── api-contract.md     # Full API reference
 ├── img/                    # Screenshots
 ├── plugins/                # Shared plugin scripts
 └── scripts/
@@ -374,3 +378,4 @@ This is a continuously growing project. Planned additions include:
 - [ ] Mobile app via TWA (Google Play Store)
 - [ ] Grafana-compatible metric export
 
+Contributions and feedback welcome — open an issue or submit a pull request.
