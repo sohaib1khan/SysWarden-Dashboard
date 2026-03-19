@@ -196,7 +196,7 @@ async def _check_one(monitor_id: int) -> None:
     # 3 strikes at the default 60s interval = 3 minutes of genuine failure before
     # alerting, which is resilient against Cloudflare Tunnel transients and
     # intermittent upstream proxy errors.
-    FAILURE_THRESHOLD = 3
+    FAILURE_THRESHOLD = 2
     if status == "up":
         new_consecutive_failures = 0
         effective_status = "up"
