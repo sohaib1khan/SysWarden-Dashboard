@@ -246,7 +246,7 @@ async def _check_one(monitor_id: int) -> None:
             if not monitor:
                 return
             monitor_repo.update_status(db, monitor, effective_status, rt_ms, new_consecutive_failures)
-            monitor_repo.create_event(db, monitor_id, status, rt_ms, err)
+            monitor_repo.create_event(db, monitor_id, effective_status, rt_ms, err)
         finally:
             db.close()
 
