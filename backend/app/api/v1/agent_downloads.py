@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import pathlib
 
-from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import APIRouter, HTTPException, Request
+from fastapi.responses import FileResponse, Response
 
 router = APIRouter(tags=["agent-downloads"])
 
@@ -45,13 +45,26 @@ def list_downloads() -> list[dict]:
 
 
 @router.get("/agent/download/{filename}", summary="Download an agent file")
-def download_file(filename: str) -> FileResponse:
+def download_file(filename: str, request: Request) -> Response:
     """Serve a single agent binary or the install script."""
     if filename not in ALLOWED_FILES:
         raise HTTPException(status_code=404, detail="File not found")
     path = AGENT_BIN_DIR / filename
     if not path.is_file():
         raise HTTPException(status_code=404, detail="File not available yet — check back soon")
+
+    # For install.sh — substitute YOUR-BACKEND-URL with the actual backend URL
+    if filename == "install.sh":
+        base_url = str(request.base_url).rstrip("/")
+        content = path.read_text()
+        content = content.replace("https://YOUR-BACKEND-URL", base_url)
+        content = content.replace("YOUR-BACKEND-URL", base_url)
+        return Response(
+            content=content,
+            media_type="application/x-sh",
+            headers={"Content-Disposition": "attachment; filename=install.sh"},
+        )
+
     return FileResponse(
         path=str(path),
         media_type=ALLOWED_FILES[filename],
