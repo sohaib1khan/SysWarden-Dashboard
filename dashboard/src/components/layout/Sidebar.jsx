@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { alertsApi } from '../../api/alerts.js'
+import { monitorsApi } from '../../api/monitors.js'
 import { authApi } from '../../api/auth.js'
 import { useAuthStore } from '../../store/authStore.js'
 
@@ -15,6 +16,7 @@ const NAV = [
 
 export default function Sidebar() {
   const [recentCount, setRecentCount] = useState(0)
+  const [downCount, setDownCount] = useState(0)
   const navigate = useNavigate()
   const { user, logout } = useAuthStore()
 
@@ -27,7 +29,17 @@ export default function Sidebar() {
     check()
     const id = setInterval(check, 30_000)
     return () => clearInterval(id)
-  }, [])
+      }, [])
+
+    useEffect(() => {
+      const checkMonitors = () =>
+        monitorsApi.list()
+          .then((ms) => setDownCount(ms.filter((m) => m.status === 'down' && m.enabled).length))
+          .catch(() => {})
+      checkMonitors()
+      const id = setInterval(checkMonitors, 30_000)
+      return () => clearInterval(id)
+    }, [])
 
   async function handleLogout() {
     try { await authApi.logout() } catch { /* ignore */ }
@@ -52,7 +64,12 @@ export default function Sidebar() {
             }
           >
             {label}
-            {to === '/alerts/incidents' && recentCount > 0 && (
+            {to === '/status' && downCount > 0 && (
+  <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5">
+    {downCount}
+  </span>
+)}
+{to === '/alerts/incidents' && recentCount > 0 && (
               <span className="absolute right-2 top-1/2 -translate-y-1/2 bg-red-500 text-white text-xs font-bold rounded-full px-1.5">
                 {recentCount}
               </span>
